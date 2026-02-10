@@ -9,3 +9,10 @@ wheels/
 # Virtual environments
 .venv
 .env
+
+kafka\service.cert
+
+kafka\service.key
+
+
+kafka\ca.pem
