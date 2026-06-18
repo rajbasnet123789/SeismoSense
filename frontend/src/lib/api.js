@@ -68,7 +68,4 @@ export const api = {
     return request(`/alerts?limit=${limit}`);
   },
 
-  seedPredictions() {
-    return request('/seed', { method: 'POST' });
-  },
 };

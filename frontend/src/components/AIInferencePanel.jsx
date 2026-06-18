@@ -115,23 +115,6 @@ export default function AIInferencePanel({ eqProb = 0, noiseProb = 0, explProb =
         <ProbBar label="Noise"      value={noiseProb} color="#8B949E" />
         <ProbBar label="Explosion"  value={explProb}  color="#F59E0B" />
       </div>
-
-      {/* Divider */}
-      <div style={{ height: '1px', background: '#21262D' }} />
-
-      {/* Model info */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-        {[
-          { k: 'Model',   v: 'EQTransformer v2.1' },
-          { k: 'Latency', v: '42 ms' },
-          { k: 'Backend', v: 'FastAPI + Kafka' },
-        ].map(({ k, v }) => (
-          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: '#8B949E' }}>{k}</span>
-            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: '#E6EDF3' }}>{v}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

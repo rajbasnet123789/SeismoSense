@@ -9,6 +9,7 @@ export default function Header() {
   const [stations, setStations] = useState([]);
   const [station, setStation] = useState('');
   const [userName, setUserName] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -24,12 +25,22 @@ export default function Header() {
       })
       .catch(() => {});
 
+    api.healthCheck()
+      .then(() => setIsConnected(true))
+      .catch(() => setIsConnected(false));
+
+    const healthInterval = setInterval(() => {
+      api.healthCheck()
+        .then(() => setIsConnected(true))
+        .catch(() => setIsConnected(false));
+    }, 30000);
+
     try {
       const u = JSON.parse(localStorage.getItem('ss_user') || '{}');
       setUserName(u.name || u.email?.split('@')[0] || 'User');
     } catch {}
 
-    return () => clearInterval(id);
+    return () => { clearInterval(id); clearInterval(healthInterval); };
   }, []);
 
   const handleLogout = () => {
@@ -123,21 +134,9 @@ export default function Header() {
       <div style={{ width: '1px', height: '28px', background: '#21262D' }} />
 
       {/* Connection status */}
-      <div className="badge badge-green" style={{ fontSize: '10px' }}>
-        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10B981' }} />
-        CONNECTED
-      </div>
-
-      {/* Kafka indicator */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '5px',
-        padding: '3px 8px',
-        background: 'rgba(33,150,243,0.08)',
-        border: '1px solid rgba(33,150,243,0.2)',
-        borderRadius: '4px',
-      }}>
-        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: '#2196F3', letterSpacing: '0.08em' }}>KAFKA</span>
-        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#2196F3', boxShadow: '0 0 6px #2196F3' }} />
+      <div className={`badge ${isConnected ? 'badge-green' : 'badge-red'}`} style={{ fontSize: '10px' }}>
+        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: isConnected ? '#10B981' : '#EF4444' }} />
+        {isConnected ? 'CONNECTED' : 'DISCONNECTED'}
       </div>
 
       {/* Divider */}

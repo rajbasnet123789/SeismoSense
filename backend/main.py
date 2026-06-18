@@ -1,6 +1,6 @@
 import logging
-import random
-from datetime import datetime, timedelta, timezone
+import os
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from typing import List
 from fastapi import FastAPI, Depends, HTTPException, status
@@ -51,9 +51,11 @@ app = FastAPI(
 )
 
 # Allow CORS from the Next.js frontend
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        frontend_url,
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ],
@@ -139,27 +141,6 @@ def read_users_me(current_user: model.User = Depends(get_current_user)):
     """
     return current_user
 
-@app.post("/seed", status_code=status.HTTP_201_CREATED)
-def seed_predictions(db: Session = Depends(get_db)):
-    """
-    Insert sample prediction records for demo/testing when the Kafka pipeline is not running.
-    """
-    stations = ["KATMN.IU", "DILI.IU", "MAJO.IU", "TATO.IU", "HNR.IU", "SHL.IU"]
-    now = datetime.now(timezone.utc)
-    records = []
-    for i in range(30):
-        station = random.choice(stations)
-        p_wave = round(random.uniform(0.01, 0.98), 4)
-        created_at = now - timedelta(minutes=i * 7, seconds=random.randint(0, 300))
-        rec = model.StreamData(station=station, p_wave=p_wave, created_at=created_at)
-        db.add(rec)
-        records.append(rec)
-    db.commit()
-    for r in records:
-        db.refresh(r)
-    logger.info(f"Seeded {len(records)} sample predictions.")
-    return records
-
 @app.get("/predictions", response_model=List[StreamDataResponse])
 def read_predictions(limit: int = 100, offset: int = 0, db: Session = Depends(get_db)):
     """
@@ -201,14 +182,14 @@ def read_stations(db: Session = Depends(get_db)):
         stations.append(StationResponse(
             code=s_code,
             network=s_net,
-            location="",
-            lat=0.0,
-            lon=0.0,
-            status="online" if last_seen and (datetime.utcnow() - last_seen).total_seconds() < 3600 else "offline",
-            rate=100.0,
-            lag="—",
+            location=None,
+            lat=None,
+            lon=None,
+            status="online" if last_seen and (datetime.now(timezone.utc) - last_seen).total_seconds() < 3600 else "offline",
+            rate=None,
+            lag=None,
             last_seen=last_str,
-            pkts=99.0,
+            pkts=None,
             events=event_count,
         ))
     return stations

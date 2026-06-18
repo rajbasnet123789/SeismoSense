@@ -64,14 +64,14 @@ class LoginRequest(BaseModel):
 class StationResponse(BaseModel):
     code: str
     network: str = "IU"
-    location: str = ""
-    lat: float = 0.0
-    lon: float = 0.0
+    location: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
     status: str = "online"
-    rate: float = 0.0
-    lag: str = "—"
+    rate: Optional[float] = None
+    lag: Optional[str] = None
     last_seen: str = "—"
-    pkts: float = 0.0
+    pkts: Optional[float] = None
     events: int = 0
 
     class Config:

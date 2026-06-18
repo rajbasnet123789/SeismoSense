@@ -188,7 +188,7 @@ export default function DashboardPage() {
 
         {/* Waveform panel — 75% */}
         <div style={{ flex: 3, display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 }}>
-          <WaveformPanel />
+          <WaveformPanel predictions={predictions} />
         </div>
 
         {/* Right panel — 25% */}

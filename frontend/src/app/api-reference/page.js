@@ -1,5 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const ENDPOINTS = [
   {
@@ -134,16 +136,6 @@ const ENDPOINTS = [
 ]`,
     color: '#EF4444',
   },
-  {
-    method: 'POST', path: '/seed',
-    tag: 'Data',
-    desc: 'Insert 30 sample predictions (demo/testing when Kafka pipeline is not running).',
-    params: [],
-    response: `[
-  { "id": 1, "station": "KATMN.IU", "p_wave": 0.874, "created_at": "..." }
-]`,
-    color: '#F59E0B',
-  },
 ];
 
 const METHOD_COLORS = {
@@ -251,7 +243,7 @@ export default function ApiReferencePage() {
         <h1 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '18px', fontWeight: 700, color: '#E6EDF3', marginBottom: '4px' }}>
           Developer API Reference
         </h1>
-        <p style={{ fontSize: '13px', color: '#8B949E' }}>FastAPI · REST + SSE · Base URL: <code style={{ color: '#2196F3', fontFamily: 'JetBrains Mono, monospace', fontSize: '12px' }}>http://localhost:8000</code></p>
+        <p style={{ fontSize: '13px', color: '#8B949E' }}>FastAPI · REST + SSE · Base URL: <code style={{ color: '#2196F3', fontFamily: 'JetBrains Mono, monospace', fontSize: '12px' }}>{API_BASE_URL}</code></p>
       </div>
 
       {/* Auth note */}
