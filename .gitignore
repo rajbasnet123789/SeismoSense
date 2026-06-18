@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+wheels/
+*.egg-info
+.venv
+.env
+venv/
+env/
+
+# Model variables (large files)
+backend/ai/earthquake_model/variables/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.env.docker
+
+# Kafka secrets
+backend/kafka/ca.pem
+backend/kafka/service.cert
+backend/kafka/service.key
