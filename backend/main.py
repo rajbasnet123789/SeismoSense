@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from typing import List
@@ -40,7 +41,32 @@ async def lifespan(app: FastAPI):
         logger.info("Startup database initialization completed.")
     except Exception as e:
         logger.error(f"Startup database initialization failed: {e}")
+
+    # Start Kafka producer and consumer as daemon threads
+    def _run_producer():
+        try:
+            from backend.kafka.producer import fetch_and_send
+            logger.info("Kafka producer thread starting...")
+            fetch_and_send()
+        except Exception as e:
+            logger.error(f"Kafka producer failed: {e}")
+
+    def _run_consumer():
+        try:
+            from backend.kafka.consumer import consume
+            logger.info("Kafka consumer thread starting...")
+            consume()
+        except Exception as e:
+            logger.error(f"Kafka consumer failed: {e}")
+
+    producer_thread = threading.Thread(target=_run_producer, daemon=True, name="kafka-producer")
+    consumer_thread = threading.Thread(target=_run_consumer, daemon=True, name="kafka-consumer")
+    producer_thread.start()
+    consumer_thread.start()
+    logger.info("Kafka producer and consumer threads launched.")
+
     yield
+
     logger.info("Shutting down backend app...")
 
 app = FastAPI(
