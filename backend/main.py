@@ -64,6 +64,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/", status_code=status.HTTP_200_OK)
+def root():
+    return {
+        "message": "SeismoSense API is running",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 @app.get("/health", status_code=status.HTTP_200_OK)
 def health_check():
     """
