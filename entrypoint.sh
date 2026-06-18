@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 echo "================================================"
@@ -33,12 +33,12 @@ echo "  Frontend: http://localhost:3000"
 echo "  API docs: http://localhost:8000/docs"
 echo "================================================"
 
-# Trap signals and forward to children
-trap "kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit" SIGTERM SIGINT
+cleanup() {
+  kill $BACKEND_PID $FRONTEND_PID 2>/dev/null
+  exit 0
+}
+trap cleanup SIGTERM SIGINT
 
-# Wait for either process to exit
 wait -n $BACKEND_PID $FRONTEND_PID 2>/dev/null
-
-# If one exited, kill the other
 kill $BACKEND_PID $FRONTEND_PID 2>/dev/null
 exit 1

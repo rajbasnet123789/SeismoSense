@@ -12,6 +12,7 @@ RUN npm run build
 FROM python:3.10-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -29,7 +30,6 @@ COPY backend/ ./backend/
 
 # ── Frontend ──
 COPY --from=frontend-builder /build/frontend/.next ./frontend/.next
-COPY --from=frontend-builder /build/frontend/public ./frontend/public
 COPY --from=frontend-builder /build/frontend/package.json ./frontend/
 COPY --from=frontend-builder /build/frontend/node_modules ./frontend/node_modules
 COPY frontend/next.config.mjs ./frontend/

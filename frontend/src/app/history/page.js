@@ -196,7 +196,7 @@ export default function HistoryPage() {
             ))}
           </tbody>
         </table>
-      </div>
+      </div>}
 
       {/* Pagination */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
