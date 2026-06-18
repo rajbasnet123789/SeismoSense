@@ -13,7 +13,7 @@ backend/kafka/*.key
 backend/README.md
 backend/uv.lock
 frontend/.next
-frontend/node_modules
+frontend/out
 node_modules
 *.log
 .env
