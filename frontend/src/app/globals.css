@@ -17,6 +17,10 @@
   --color-purple:       #9C27B0;
   --color-cyan:         #00BCD4;
 
+  --axis-z-color:       #00FF00; /* Neon Green */
+  --axis-n-color:       #00FFFF; /* Cyan Blue */
+  --axis-e-color:       #FFBF00; /* Warning Yellow-Amber */
+
   --text-primary:   #E6EDF3;
   --text-secondary: #8B949E;
   --text-muted:     #484F58;
@@ -28,8 +32,8 @@
   --header-height: 58px;
 
   --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
+  --radius-md: 4px; /* ROUND_FOUR */
+  --radius-lg: 8px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

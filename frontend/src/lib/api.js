@@ -1,4 +1,7 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined'
+    ? (window.location.port === '8000' ? '' : '/api')
+    : (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : '/api'));
 
 async function request(endpoint, options = {}) {
   let token = null;
@@ -68,4 +71,7 @@ export const api = {
     return request(`/alerts?limit=${limit}`);
   },
 
+  getWaveforms(station, limit = 5) {
+    return request(`/waveforms/${encodeURIComponent(station)}?limit=${limit}`);
+  },
 };

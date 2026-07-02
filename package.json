@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": ".venv/Scripts/python.exe -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000",
-    "dev:frontend": "cd frontend && npm run dev"
+    "dev:backend": "uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:frontend": "cd frontend && npm run dev",
+    "prod": "docker compose up --build -d",
+    "producer": "cd backend && python -m backend.kafka_integration.producer",
+    "consumer": "cd backend && python -m backend.kafka_integration.consumer"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

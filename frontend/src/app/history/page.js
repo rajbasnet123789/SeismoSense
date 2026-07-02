@@ -89,11 +89,14 @@ export default function HistoryPage() {
 
       {/* Filters */}
       <div className="card" style={{ padding: '12px 16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#2196F3', fontWeight: 600 }}>SHL</span>
+        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: '#8B949E' }}>Shillong, India</span>
+        <div style={{ width: '1px', height: '20px', background: '#21262D' }} />
         <input
-          placeholder="Search station, type…"
+          placeholder="Search type…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ width: '220px' }}
+          style={{ width: '180px' }}
         />
         {['All', 'Earthquake', 'Medium', 'Low', 'Noise'].map(t => (
           <button

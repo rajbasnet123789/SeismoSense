@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}";
+self.__REACT_LOADABLE_MANIFEST='{"app\\\\india-map\\\\page.js -> leaflet":{"id":7691,"files":["static/chunks/d0deef33.afff9b3bf7059c8b.js"]}}';

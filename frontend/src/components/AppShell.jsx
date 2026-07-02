@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { LiveDataProvider } from '@/context/LiveDataContext';
 
 const AUTH_PATHS = ['/signin', '/signup'];
 
@@ -21,31 +22,37 @@ export default function AppShell({ children }) {
     }
   }, [isAuth, router]);
 
+  const isDashboard = pathname === '/dashboard';
+
   if (isAuth) {
     return <>{children}</>;
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#0D1117' }}>
-      <Sidebar />
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        marginLeft: '64px',
-        overflow: 'hidden',
-      }}>
-        <Header />
-        <main style={{
+    <LiveDataProvider>
+      <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#0D1117' }}>
+        <Sidebar />
+        <div style={{
           flex: 1,
-          overflowY: 'auto',
-          background: '#0D1117',
-          padding: '20px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          marginLeft: '64px',
+          overflow: 'hidden',
         }}>
-          {children}
-        </main>
+          <Header />
+          <main style={{
+            flex: 1,
+            display: isDashboard ? 'flex' : 'block',
+            flexDirection: isDashboard ? 'column' : 'initial',
+            overflowY: isDashboard ? 'hidden' : 'auto',
+            background: '#0D1117',
+            padding: '20px 24px',
+          }}>
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </LiveDataProvider>
   );
 }
 

@@ -7,6 +7,7 @@ backend/.gitignore
 backend/.python-version
 backend/__pycache__
 backend/ai/*.ipynb
+backend/ai/earthquake_model/
 backend/kafka/*.pem
 backend/kafka/*.cert
 backend/kafka/*.key

@@ -73,7 +73,7 @@ const ENDPOINTS = [
     response: `[
   {
     "id": 1,
-    "station": "KATMN.IU",
+    "station": "SHL.IU",
     "p_wave": 0.874,
     "created_at": "2024-01-15T09:42:31"
   }
@@ -85,14 +85,14 @@ const ENDPOINTS = [
     tag: 'Data',
     desc: 'Filter predictions by a specific seismic station code.',
     params: [
-      { name: 'station', type: 'string',  req: true,  desc: 'FDSN station code (e.g. KATMN.IU)' },
+      { name: 'station', type: 'string',  req: true,  desc: 'FDSN station code (e.g. SHL.IU)' },
       { name: 'limit',   type: 'integer', req: false, desc: 'Max records (default: 100)' },
       { name: 'offset',  type: 'integer', req: false, desc: 'Pagination offset (default: 0)' },
     ],
     response: `[
   {
     "id": 42,
-    "station": "KATMN.IU",
+    "station": "SHL.IU",
     "p_wave": 0.912,
     "created_at": "2024-01-15T09:42:31"
   }
@@ -106,7 +106,7 @@ const ENDPOINTS = [
     params: [],
     response: `[
   {
-    "code": "KATMN",
+    "code": "SHL",
     "network": "IU",
     "status": "online",
     "rate": 100,
@@ -128,8 +128,8 @@ const ENDPOINTS = [
     "id": "ALT-0042",
     "sev": "critical",
     "type": "Seismic Event",
-    "station": "KATMN.IU",
-    "msg": "M3.6 detected — confidence 91.2% — station KATMN.IU",
+    "station": "SHL.IU",
+    "msg": "M3.6 detected — confidence 91.2% — station SHL.IU",
     "ts": "09:42:31",
     "ack": false
   }

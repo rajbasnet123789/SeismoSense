@@ -1,9 +1,10 @@
 import './globals.css';
+import 'leaflet/dist/leaflet.css';
 import AppShell from '@/components/AppShell';
 
 export const metadata = {
-  title: 'SeismoSense — Real-Time Seismic Monitoring',
-  description: 'AI-powered seismic monitoring platform with real-time waveform analysis and earthquake detection',
+  title: 'SeismoSense — SHL Station | Shillong, India',
+  description: 'Single-station seismic monitoring for Shillong (SHL), Meghalaya, India — real-time waveform analysis and earthquake detection',
 };
 
 export default function RootLayout({ children }) {

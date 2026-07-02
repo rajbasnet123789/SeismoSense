@@ -1,15 +1,20 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+import { useLiveData } from '@/context/LiveDataContext';
 
 export default function Header() {
   const router = useRouter();
-  const [time, setTime]       = useState('');
-  const [stations, setStations] = useState([]);
-  const [station, setStation] = useState('');
+  const [time, setTime] = useState('');
   const [userName, setUserName] = useState('');
-  const [isConnected, setIsConnected] = useState(false);
+  const {
+    stations,
+    selectedStation,
+    selectStation,
+    wsConnected,
+    apiConnected,
+    loading,
+  } = useLiveData();
 
   useEffect(() => {
     const update = () => {
@@ -18,36 +23,27 @@ export default function Header() {
     update();
     const id = setInterval(update, 1000);
 
-    api.getStations()
-      .then(data => {
-        setStations(data);
-        if (data.length > 0) setStation(`${data[0].code}.${data[0].network}`);
-      })
-      .catch(() => {});
-
-    api.healthCheck()
-      .then(() => setIsConnected(true))
-      .catch(() => setIsConnected(false));
-
-    const healthInterval = setInterval(() => {
-      api.healthCheck()
-        .then(() => setIsConnected(true))
-        .catch(() => setIsConnected(false));
-    }, 30000);
-
     try {
       const u = JSON.parse(localStorage.getItem('ss_user') || '{}');
       setUserName(u.name || u.email?.split('@')[0] || 'User');
     } catch {}
 
-    return () => { clearInterval(id); clearInterval(healthInterval); };
+    return () => clearInterval(id);
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('ss_auth');
     localStorage.removeItem('ss_user');
+    localStorage.removeItem('ss_token');
     router.replace('/signin');
   };
+
+  const connectionLabel = !apiConnected
+    ? 'DISCONNECTED'
+    : wsConnected
+      ? 'LIVE'
+      : 'CONNECTING';
+  const connectionColor = wsConnected && apiConnected ? '#10B981' : apiConnected ? '#F59E0B' : '#EF4444';
 
   return (
     <header style={{
@@ -60,7 +56,6 @@ export default function Header() {
       flexShrink: 0,
       zIndex: 100,
     }}>
-      {/* Logo text */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '8px' }}>
         <span style={{
           fontFamily: 'JetBrains Mono, monospace',
@@ -76,28 +71,28 @@ export default function Header() {
         }} />
       </div>
 
-      {/* Divider */}
       <div style={{ width: '1px', height: '28px', background: '#21262D' }} />
 
-      {/* Live badge */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <span className="live-dot" />
+        <span className={wsConnected ? 'live-dot' : ''} style={{
+          width: 6, height: 6, borderRadius: '50%',
+          background: wsConnected ? '#10B981' : '#484F58',
+          display: 'inline-block',
+        }} />
         <span style={{
           fontFamily: 'JetBrains Mono, monospace',
           fontSize: '11px', fontWeight: 700,
-          color: '#10B981', letterSpacing: '0.1em',
+          color: wsConnected ? '#10B981' : '#484F58', letterSpacing: '0.1em',
         }}>LIVE</span>
       </div>
 
-      {/* Spacer */}
       <div style={{ flex: 1 }} />
 
-      {/* Station selector — dynamic from /stations */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ fontSize: '11px', color: '#8B949E', fontFamily: 'JetBrains Mono, monospace' }}>STATION</span>
         <select
-          value={station}
-          onChange={e => setStation(e.target.value)}
+          value={selectedStation}
+          onChange={e => selectStation(e.target.value)}
           style={{
             background: '#1E2430',
             border: '1px solid #21262D',
@@ -107,21 +102,20 @@ export default function Header() {
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: '12px',
             cursor: 'pointer',
+            minWidth: '120px',
           }}
         >
-          {stations.length === 0 && <option>Loading…</option>}
+          {loading && stations.length === 0 && <option value="">Loading…</option>}
           {stations.map(s => (
-            <option key={`${s.code}.${s.network}`} value={`${s.code}.${s.network}`}>
-              {s.code}.{s.network}
+            <option key={s.code} value={s.code}>
+              {s.code}.{s.network || 'IN'} — {s.status}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Divider */}
       <div style={{ width: '1px', height: '28px', background: '#21262D' }} />
 
-      {/* Timestamp */}
       <span style={{
         fontFamily: 'JetBrains Mono, monospace',
         fontSize: '11px', color: '#8B949E',
@@ -130,19 +124,15 @@ export default function Header() {
         {time}
       </span>
 
-      {/* Divider */}
       <div style={{ width: '1px', height: '28px', background: '#21262D' }} />
 
-      {/* Connection status */}
-      <div className={`badge ${isConnected ? 'badge-green' : 'badge-red'}`} style={{ fontSize: '10px' }}>
-        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: isConnected ? '#10B981' : '#EF4444' }} />
-        {isConnected ? 'CONNECTED' : 'DISCONNECTED'}
+      <div className={`badge ${wsConnected && apiConnected ? 'badge-green' : apiConnected ? 'badge-amber' : 'badge-red'}`} style={{ fontSize: '10px' }}>
+        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: connectionColor }} />
+        {connectionLabel}
       </div>
 
-      {/* Divider */}
       <div style={{ width: '1px', height: '28px', background: '#21262D' }} />
 
-      {/* User avatar + name */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{
           width: '30px', height: '30px', borderRadius: '50%',
@@ -162,7 +152,6 @@ export default function Header() {
         )}
       </div>
 
-      {/* Logout */}
       <button
         onClick={handleLogout}
         title="Sign out"

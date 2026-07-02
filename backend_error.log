@@ -1,0 +1,13 @@
+2026-07-01 08:31:26,449 - backend.main - WARNING - Frontend directory not found at D:\Project_E\frontend\out, serving API only.
+INFO:     Started server process [6196]
+INFO:     Waiting for application startup.
+2026-07-01 08:31:26,451 - backend.main - INFO - Starting up and initializing database...
+2026-07-01 08:31:26,452 - backend.db.connection - INFO - Initializing database tables...
+2026-07-01 08:31:30,676 - backend.db.connection - INFO - Database tables initialized successfully.
+2026-07-01 08:31:30,678 - backend.main - INFO - Startup database initialization completed.
+2026-07-01 08:31:30,680 - backend.main - INFO - Kafka producer and consumer threads launched.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('0.0.0.0', 8000): only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+2026-07-01 08:31:30,682 - backend.main - INFO - Shutting down backend app...
+INFO:     Application shutdown complete.

@@ -1,10 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
-# -----------------
-# User Schemas
-# -----------------
 
 class UserBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
@@ -22,28 +19,27 @@ class UserResponse(UserBase):
         from_attributes = True
 
 
-# -----------------
-# StreamData Schemas
-# -----------------
 
 class StreamDataBase(BaseModel):
     station: str = Field(..., min_length=1, max_length=50)
     p_wave: float = Field(..., description="P-wave prediction probability")
 
 class StreamDataCreate(StreamDataBase):
-    pass
+    z_samples: Optional[str] = None
+    n_samples: Optional[str] = None
+    e_samples: Optional[str] = None
 
 class StreamDataResponse(StreamDataBase):
     id: int
+    z_samples: Optional[str] = None
+    n_samples: Optional[str] = None
+    e_samples: Optional[str] = None
     created_at: datetime
 
     class Config:
         from_attributes = True
 
 
-# -----------------
-# Auth Schemas
-# -----------------
 
 class Token(BaseModel):
     access_token: str
@@ -57,9 +53,7 @@ class LoginRequest(BaseModel):
     password: str
 
 
-# -----------------
-# Station Schemas
-# -----------------
+
 
 class StationResponse(BaseModel):
     code: str
@@ -78,9 +72,6 @@ class StationResponse(BaseModel):
         from_attributes = True
 
 
-# -----------------
-# Alert Schemas
-# -----------------
 
 class AlertResponse(BaseModel):
     id: str

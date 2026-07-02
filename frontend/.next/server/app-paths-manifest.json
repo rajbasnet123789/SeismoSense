@@ -1,11 +1,12 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/alerts/page": "app/alerts/page.js",
-  "/signin/page": "app/signin/page.js",
-  "/api-reference/page": "app/api-reference/page.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/history/page": "app/history/page.js",
-  "/stations/page": "app/stations/page.js",
   "/page": "app/page.js",
-  "/signup/page": "app/signup/page.js"
+  "/api-reference/page": "app/api-reference/page.js",
+  "/signup/page": "app/signup/page.js",
+  "/india-map/page": "app/india-map/page.js",
+  "/stations/page": "app/stations/page.js",
+  "/signin/page": "app/signin/page.js"
 }

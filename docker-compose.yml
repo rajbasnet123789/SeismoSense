@@ -1,0 +1,20 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - KAFKA_SSL_CAFILE=/app/backend/kafka_integration/ca.pem
+      - KAFKA_SSL_CERTFILE=/app/backend/kafka_integration/service.cert
+      - KAFKA_SSL_KEYFILE=/app/backend/kafka_integration/service.key
+      - SECRET_KEY=${SECRET_KEY:-seismosense-dev-secret}
+      - ENABLE_KAFKA_PIPELINE=false
+    volumes:
+      - ./backend/kafka_integration/ca.pem:/app/backend/kafka_integration/ca.pem
+      - ./backend/kafka_integration/service.cert:/app/backend/kafka_integration/service.cert
+      - ./backend/kafka_integration/service.key:/app/backend/kafka_integration/service.key
+    restart: unless-stopped

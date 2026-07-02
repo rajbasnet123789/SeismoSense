@@ -1,0 +1,18 @@
+2026-07-01 01:04:15,790 - backend.main - WARNING - Frontend directory not found at D:\Project_E\frontend\out, serving API only.
+INFO:     Started server process [26788]
+INFO:     Waiting for application startup.
+2026-07-01 01:04:15,793 - backend.main - INFO - Starting up and initializing database...
+2026-07-01 01:04:15,793 - backend.db.connection - INFO - Initializing database tables...
+2026-07-01 01:04:18,016 - backend.db.connection - INFO - Database tables initialized successfully.
+2026-07-01 01:04:18,018 - backend.main - INFO - Startup database initialization completed.
+2026-07-01 01:04:18,019 - backend.main - INFO - Kafka producer and consumer threads launched.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-07-01 01:04:19,503 - backend.main - INFO - Kafka producer thread starting...
+D:\Project_E\backend\.venv\lib\site-packages\google\auth\__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+D:\Project_E\backend\.venv\lib\site-packages\google\oauth2\__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+2026-07-01 01:04:24,517 - backend.main - INFO - Kafka consumer thread starting...
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+2026-07-01 01:04:32,252 - backend.main - ERROR - Kafka producer failed: (sqlalchemy 2.0.51 (d:\project_e\backend\.venv\lib\site-packages), Requirement.parse('sqlalchemy<2'))

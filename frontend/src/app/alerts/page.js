@@ -51,7 +51,7 @@ export default function AlertsPage() {
               }}>{unacked}</span>
             )}
           </h1>
-          <p style={{ fontSize: '13px', color: '#8B949E' }}>Real-time seismic events and system health alerts</p>
+          <p style={{ fontSize: '13px', color: '#8B949E' }}>SHL station seismic events and system alerts — Shillong, India</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button className="btn btn-ghost" style={{ fontSize: '11px' }} onClick={() => setAlerts(a => a.map(x => ({ ...x, ack: true })))}>

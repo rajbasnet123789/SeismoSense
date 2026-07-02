@@ -187,25 +187,7 @@ export default function SignUpPage() {
                 </p>
               </div>
 
-              {/* NEW badge */}
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  padding: '5px 14px',
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '99px',
-                }}>
-                  <span style={{
-                    background: '#fff', color: '#07070F',
-                    fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700,
-                    padding: '1px 6px', borderRadius: '4px',
-                  }}>NEW</span>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
-                    Just shipped v2.0 — EQTransformer upgrade
-                  </span>
-                </div>
-              </div>
+
 
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '13px' }}>
                 {error && (

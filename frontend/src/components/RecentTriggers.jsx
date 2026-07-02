@@ -1,6 +1,4 @@
-const DEFAULT_TRIGGERS = [
-  { time: '--:--:--', station: 'Waiting…', mag: '—', conf: 0, level: 'low', type: '—' },
-];
+
 
 const LEVEL_COLORS = {
   critical: '#EF4444',
@@ -9,7 +7,8 @@ const LEVEL_COLORS = {
   low:      '#10B981',
 };
 
-export default function RecentTriggers({ triggers = DEFAULT_TRIGGERS }) {
+const EMPTY = [];
+export default function RecentTriggers({ triggers = EMPTY }) {
   return (
     <div className="card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{

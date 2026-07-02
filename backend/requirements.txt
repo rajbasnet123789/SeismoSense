@@ -3,9 +3,9 @@ pandas
 tensorflow==2.10.0
 psycopg[binary]>=3.1
 python-dotenv>=1.0
-sqlalchemy
+sqlalchemy>=2
 fastapi[all]
-obspy
+obspy>=1.5.0
 PyJWT
 pwdlib[argon2]
 kafka-python

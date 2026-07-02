@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text
 from datetime import datetime, timezone
 from backend.db.base import Base
 
@@ -22,6 +22,9 @@ class StreamData(Base):
     id = Column(Integer, primary_key=True, index=True)
     station = Column(String, index=True, nullable=False)
     p_wave = Column(Float, nullable=False)
+    z_samples = Column(Text, nullable=True)
+    n_samples = Column(Text, nullable=True)
+    e_samples = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     def __repr__(self):

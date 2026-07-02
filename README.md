@@ -8,34 +8,30 @@ SeismoSense ingests live waveform data from global FDSN seismic networks (IRIS),
 
 ## Architecture
 
+Everything runs in a **single Docker container** on Render (one URL, one port):
+
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        DATA PIPELINE                                 │
-│                                                                      │
-│  ┌────────────────┐     ┌──────────────┐     ┌──────────────────┐   │
-│  │  FDSN IRIS     │────▶│  Kafka       │────▶│  TFLite Consumer │   │
-│  │  Producer     │     │  Topic       │     │  (inference)     │   │
-│  │  (ObsPy)       │     │  "Sensor"    │     │                  │   │
-│  └────────────────┘     └──────────────┘     └────────┬─────────┘   │
-│                                                        │              │
-│                                                        ▼              │
-│                                              ┌──────────────────┐   │
-│                                              │  PostgreSQL      │   │
-│                                              │  (Aiven Cloud)   │   │
-│                                              └────────┬─────────┘   │
-│                                                        │              │
-│  ┌──────────────────────────────────────────────────────┴──────────┐ │
-│  │                      FASTAPI BACKEND                              │ │
-│  │  /health  /signup  /login  /users/me  /predictions              │ │
-│  │  /stations  /alerts  /seed                                       │ │
-│  └───────────────────────────────────────────────────────────────────┘ │
-│                           │                                            │
-│                           ▼                                            │
-│  ┌───────────────────────────────────────────────────────────────────┐ │
-│  │                  NEXT.JS FRONTEND                                  │ │
-│  │  Dashboard · History · Stations · Alerts · API Ref                │ │
-│  └───────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    SINGLE DOCKER CONTAINER                       │
+│                                                                  │
+│  ┌────────────────┐     ┌──────────────┐     ┌──────────────┐  │
+│  │  FDSN IRIS     │────▶│  Kafka       │────▶│  TFLite      │  │
+│  │  Producer     │     │  Topic       │     │  Consumer    │  │
+│  │  (ObsPy)       │     │  "Sensor"    │     │  (inference) │  │
+│  └────────────────┘     └──────────────┘     └──────┬───────┘  │
+│                                                      │           │
+│                                                      ▼           │
+│                                            ┌──────────────┐     │
+│                                            │  PostgreSQL   │     │
+│                                            │  (Aiven)      │     │
+│                                            └──────────────┘     │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │              FASTAPI (uvicorn :8000)                       │   │
+│  │  API routes: /health /signup /login /predictions /etc     │   │
+│  │  Static files: serves Next.js build (frontend/out/)       │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Pipeline Flow
@@ -46,9 +42,7 @@ SeismoSense ingests live waveform data from global FDSN seismic networks (IRIS),
 
 3. **Consumer** (`backend/kafka/consumer.py`) — Reads waveform messages, pads/clips to 500 samples per channel, applies Z-score standardization, runs TensorFlow Lite inference (`earthquake_model.tflite`), and stores the predicted P-wave probability (along with station code) in PostgreSQL.
 
-4. **Backend API** (`backend/main.py`) — FastAPI server exposing REST endpoints that query the `stream_data` and `users` tables.
-
-5. **Frontend** — Next.js 14 app with real-time dashboard, history logs, station management, alerts, and API reference docs.
+4. **Backend API** (`backend/main.py`) — FastAPI server exposing REST endpoints + serving the static Next.js frontend from a single port.
 
 ---
 
@@ -56,13 +50,14 @@ SeismoSense ingests live waveform data from global FDSN seismic networks (IRIS),
 
 | Layer | Technology |
 |-------|-----------|
-| **Frontend** | Next.js 14, React 18, CSS-in-JS |
-| **Backend** | Python 3.10+, FastAPI, Uvicorn |
+| **Frontend** | Next.js 14 (static export), React 18, CSS-in-JS |
+| **Backend** | Python 3.10, FastAPI, Uvicorn |
 | **ML Inference** | TensorFlow 2.10, TFLite |
 | **Streaming** | Apache Kafka (Aiven, SSL), ObsPy |
 | **Database** | PostgreSQL 15 (Aiven Cloud), SQLAlchemy 2.0, psycopg 3 |
 | **Auth** | JWT (PyJWT), Argon2 password hashing (pwdlib) |
-| **Container** | Docker multi-stage (Node → Python+slim) |
+| **Container** | Docker multi-stage (Node build → Python slim runtime) |
+| **Deploy** | Render (single Docker service, free tier) |
 
 ---
 
@@ -70,16 +65,16 @@ SeismoSense ingests live waveform data from global FDSN seismic networks (IRIS),
 
 ```
 D:\Project_E\
-├── Dockerfile                  # Multi-stage: Node build → Python+Node runtime
-├── entrypoint.sh               # Starts uvicorn + next start inside container
+├── Dockerfile                  # Multi-stage: Node builds frontend → Python serves everything
+├── entrypoint.sh               # (legacy) old entrypoint, no longer used
 ├── .dockerignore
+├── render.yaml                 # Single Docker service config
 ├── package.json                # Root orchestrator (concurrently for local dev)
 │
 ├── backend/
-│   ├── main.py                 # FastAPI app — all route definitions
+│   ├── main.py                 # FastAPI app — API routes + static frontend serving
 │   ├── auth.py                 # JWT creation & validation, get_current_user dependency
-│   ├── pyproject.toml          # Python dependencies
-│   ├── requirements.txt        # pip freeze dependencies
+│   ├── requirements.txt        # pip dependencies (numpy pinned for TF 2.10)
 │   ├── test_db_conn.py         # Database connectivity test script
 │   ├── db/
 │   │   ├── base.py             # SQLAlchemy engine, SessionLocal, Base, get_db()
@@ -87,9 +82,9 @@ D:\Project_E\
 │   │   ├── model.py            # SQLAlchemy ORM models (User, StreamData)
 │   │   └── schemas.py          # Pydantic request/response schemas
 │   ├── kafka/
-│   │   ├── producer.py         # FDSN→Kafka publisher (discovers stations at runtime)
+│   │   ├── producer.py         # FDSN→Kafka publisher (lazy connections, env var paths)
 │   │   ├── consumer.py         # Kafka→TFLite→PostgreSQL inference consumer
-│   │   ├── ca.pem              # Kafka SSL certificates
+│   │   ├── ca.pem              # (local dev only) Kafka SSL certificates
 │   │   ├── service.cert
 │   │   └── service.key
 │   └── ai/
@@ -98,37 +93,37 @@ D:\Project_E\
 │
 └── frontend/
     ├── package.json
-    ├── next.config.mjs          # API rewrites: /api/* → localhost:8000/*
+    ├── next.config.mjs          # Static export: output='export', trailingSlash=true
     └── src/
         ├── app/
         │   ├── layout.js        # Root layout with AppShell
-        │   ├── page.js          # Redirects to /signin
+        │   ├── page.js          # Client-side redirect to /signin
         │   ├── globals.css      # Global styles (dark theme)
-        │   ├── dashboard/page.js    # Live monitor with stats, waveform, AI panel
-        │   ├── history/page.js      # Prediction history table with filters
-        │   ├── stations/page.js     # Station management from live API
-        │   ├── alerts/page.js       # Alert feed from live API
-        │   ├── signin/page.js       # Login form (real JWT auth)
-        │   ├── signup/page.js       # Registration form with password strength
-        │   └── api-reference/page.js # Interactive API docs
+        │   ├── dashboard/page.js
+        │   ├── history/page.js
+        │   ├── stations/page.js
+        │   ├── alerts/page.js
+        │   ├── signin/page.js
+        │   ├── signup/page.js
+        │   └── api-reference/page.js
         ├── components/
-        │   ├── AppShell.jsx      # Auth guard + sidebar + header layout
-        │   ├── Sidebar.jsx       # Icon navigation bar
-        │   ├── Header.jsx        # Top bar with live status, station selector, user menu
-        │   ├── StatCard.jsx      # Metric card with sparkline/bar chart
-        │   ├── WaveformPanel.jsx  # Real-time waveform visualization
-        │   ├── AIInferencePanel.jsx # Current inference breakdown
-        │   ├── RecentTriggers.jsx  # Recent high-confidence events
-        │   └── HyperspeedCanvas.jsx # Animated starfield background
+        │   ├── AppShell.jsx
+        │   ├── Sidebar.jsx
+        │   ├── Header.jsx
+        │   ├── StatCard.jsx
+        │   ├── WaveformPanel.jsx
+        │   ├── AIInferencePanel.jsx
+        │   ├── RecentTriggers.jsx
+        │   └── HyperspeedCanvas.jsx
         └── lib/
-            └── api.js           # API client (login, signup, getPredictions, getStations, getAlerts, etc.)
+            └── api.js           # API client (calls same-origin FastAPI directly)
 ```
 
 ---
 
 ## API Endpoints
 
-All endpoints are served from `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
+All endpoints served from the same origin (e.g. `https://seismosense.onrender.com`). Interactive docs at `/docs`.
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -138,9 +133,8 @@ All endpoints are served from `http://localhost:8000`. Interactive docs at `http
 | **GET** | `/users/me` | Bearer | Authenticated user profile |
 | **GET** | `/predictions` | No | Paginated P-wave predictions (limit, offset) |
 | **GET** | `/predictions/station/{station}` | No | Predictions filtered by station code |
-| **GET** | `/stations` | No | Distinct stations with aggregate stats (count, avg p-wave, event count) |
+| **GET** | `/stations` | No | Distinct stations with aggregate stats |
 | **GET** | `/alerts` | No | High-confidence events (p_wave > 0.3) formatted as alerts |
-| **POST** | `/seed` | No | Insert 30 sample predictions for testing (when Kafka pipeline is off) |
 
 ---
 
@@ -206,18 +200,18 @@ npm install
 npm run dev
 ```
 
-Opens at `http://localhost:3000`. API calls to `/api/*` are proxied to `http://localhost:8000/*` via Next.js rewrites.
+Opens at `http://localhost:3000`.
 
 ### 3. Run Kafka Pipeline (optional, for live data)
 
-Start the producer (fetches from IRIS FDSN, publishes to Kafka):
+Start the producer:
 
 ```powershell
 cd backend
 python kafka/producer.py
 ```
 
-Start the consumer (reads from Kafka, runs ML inference, saves to DB):
+Start the consumer:
 
 ```powershell
 python kafka/consumer.py
@@ -235,7 +229,51 @@ Uses `concurrently` to run backend (uvicorn, port 8000) and frontend (next dev, 
 
 ---
 
-## Docker Deployment
+## Docker Compose (Recommended Local Dev)
+
+Run both **backend** (FastAPI :8000) and **realtime-ui** (Vite + Nginx :5173) together:
+
+### Prerequisites
+
+- Docker & Docker Compose installed
+- `.env` file in project root with:
+
+```env
+DATABASE_URL=postgresql+psycopg://user:pass@host:port/db?sslmode=require
+KAFKA_BOOTSTRAP_SERVERS=kafka-xxx.aivencloud.com:16755
+```
+
+Kafka SSL certs should be at `backend/kafka/ca.pem`, `backend/kafka/service.cert`, `backend/kafka/service.key`.
+
+### Commands
+
+```powershell
+# Build images (no cache)
+docker compose build --no-cache
+
+# Start services in background
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+
+# Rebuild and restart a single service (e.g. backend)
+docker compose up -d --no-deps --build backend
+
+# Remove everything (volumes too)
+docker compose down -v
+```
+
+- **Backend API**: http://localhost:8000
+- **Realtime UI**: http://localhost:5173
+- **API Docs (Swagger)**: http://localhost:8000/docs
+
+---
+
+## Docker Deployment (Single Container)
 
 Build the combined image:
 
@@ -243,34 +281,104 @@ Build the combined image:
 docker build -t seismosense .
 ```
 
-Run the container:
+Run locally:
 
 ```powershell
-docker run -p 3000:3000 -p 8000:8000 `
+docker run -p 8000:8000 `
   -e DATABASE_URL="postgresql+psycopg://user:pass@host:port/db?sslmode=require" `
+  -e KAFKA_BOOTSTRAP_SERVERS="kafka-xxx.aivencloud.com:16755" `
+  -e KAFKA_SSL_CAFILE="/path/to/ca.pem" `
+  -e KAFKA_SSL_CERTFILE="/path/to/service.cert" `
+  -e KAFKA_SSL_KEYFILE="/path/to/service.key" `
   seismosense
 ```
 
-The entrypoint script:
-1. Initializes database tables
-2. Starts uvicorn (backend, port 8000) in background
-3. Starts Next.js (frontend, port 3000) in background
-4. Waits for either process, then shuts down the other
-
 ### Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DATABASE_URL` | Yes | Aiven cloud URL (fallback) | PostgreSQL connection string |
-| `JWT_SECRET_KEY` | No | `"super-secret-seismosense-key-change-in-production"` | JWT signing key |
-| `NEXT_PUBLIC_API_URL` | No | `/api` | Frontend API base URL |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `SECRET_KEY` | No | JWT signing key (auto-generated on Render) |
+| `KAFKA_BOOTSTRAP_SERVERS` | Yes | Aiven Kafka bootstrap server URL |
+| `KAFKA_SSL_CAFILE` | Yes | Path to `ca.pem` SSL certificate |
+| `KAFKA_SSL_CERTFILE` | Yes | Path to `service.cert` SSL certificate |
+| `KAFKA_SSL_KEYFILE` | Yes | Path to `service.key` SSL private key |
+| `MODEL_PATH` | No | Path to TFLite model (defaults to `backend/ai/earthquake_model.tflite`) |
+
+---
+
+## Render Deployment
+
+Single Docker service configured via `render.yaml`.
+
+### Setup Checklist
+
+1. **Create service**: Render → New → Docker → point to this repo
+2. **Secret Files** (Settings → Secret Files):
+
+   | File | Mount Path |
+   |------|-----------|
+   | `ca.pem` | `/etc/secrets/ca.pem` |
+   | `service.cert` | `/etc/secrets/service.cert` |
+   | `service.key` | `/etc/secrets/service.key` |
+
+3. **Environment Variables** (Environment tab):
+
+   | Key | Value |
+   |-----|-------|
+   | `DATABASE_URL` | Your Aiven PostgreSQL connection string |
+   | `KAFKA_BOOTSTRAP_SERVERS` | `kafka-1995170-rajbasnet2027-20e5.c.aivencloud.com:16755` |
+   | `KAFKA_SSL_CAFILE` | `/etc/secrets/ca.pem` |
+   | `KAFKA_SSL_CERTFILE` | `/etc/secrets/service.cert` |
+   | `KAFKA_SSL_KEYFILE` | `/etc/secrets/service.key` |
+
+4. **Aiven IP Allowlist**: Free tier Render has no static outbound IP. Set Aiven IP allowlist to `0.0.0.0/0` or disable IP restrictions.
+
+5. **Deploy**: Push to `main` branch, Render auto-deploys.
+
+---
+
+## Troubleshooting
+
+### Kafka Timeout (`KafkaTimeoutError: Unable to bootstrap from ...`)
+
+**Cause**: Render can't reach the Aiven Kafka broker.
+
+**Checklist**:
+- [ ] Secret files are uploaded in Render dashboard with correct mount paths
+- [ ] Env vars `KAFKA_SSL_CAFILE`, `KAFKA_SSL_CERTFILE`, `KAFKA_SSL_KEYFILE` match the mount paths exactly
+- [ ] `KAFKA_BOOTSTRAP_SERVERS` env var is set correctly
+- [ ] Aiven IP allowlist is set to `0.0.0.0/0` (Render free tier has no static IPs)
+- [ ] Aiven service is running (check Aiven console)
+
+### NumPy / TensorFlow Crash (`_ARRAY_API not found`)
+
+**Cause**: NumPy 2.x installed but TF 2.10 needs NumPy 1.x.
+
+**Fix**: `requirements.txt` already pins `numpy>=1.23.0,<1.24.0`. If the issue persists, clear Render build cache and redeploy.
+
+### Frontend Shows 404
+
+**Cause**: Frontend static files not built or not found.
+
+**Checklist**:
+- [ ] Dockerfile multi-stage build completed successfully (check build logs for `npm run build`)
+- [ ] `frontend/out/` directory exists in the built image
+- [ ] `next.config.mjs` has `output: 'export'`
+
+### `/stations` Returns 500 (`can't subtract offset-naive and offset-aware datetimes`)
+
+**Cause**: PostgreSQL returns naive datetimes but code compared with timezone-aware.
+
+**Fix**: Already fixed in `main.py` — uses `datetime.utcnow()` for comparison.
 
 ---
 
 ## Key Design Decisions
 
-- **Single Docker image** — Both frontend and backend run in one container behind a single entrypoint script, simplifying deployment to one command.
-- **No fake data** — All frontend pages fetch from real backend endpoints (`/stations`, `/alerts`, `/predictions`). The `/seed` endpoint exists only for controlled testing when the Kafka pipeline is offline.
-- **Dynamic station discovery** — The producer calls `client.get_stations()` at startup to discover stations from IRIS FDSN rather than hardcoding a single station. Stations in the frontend come from whatever data flows through the pipeline.
+- **Single container** — Frontend (static export), backend API, Kafka producer, and Kafka consumer all run in one Docker container on one port. No separate services needed.
+- **No fake data** — All frontend pages fetch from real backend endpoints. The `/seed` endpoint exists only for controlled testing when the Kafka pipeline is offline.
+- **Dynamic station discovery** — The producer calls `client.get_stations()` at startup to discover stations from IRIS FDSN rather than hardcoding.
 - **Auth via JWT + Argon2** — No demo bypass. All protected routes require a valid Bearer token obtained from `/login`.
-- **Frontend API proxy** — Next.js rewrites `/api/*` → `localhost:8000/*` so the frontend never needs to know the backend host in production.
+- **Static frontend** — Next.js builds to static HTML/JS/CSS. FastAPI serves these files, eliminating the need for a separate Node.js server in production.
+- **Lazy Kafka connections** — Producer and consumer create Kafka clients inside their run functions (not at import time), so the API server starts cleanly even if Kafka is temporarily unreachable.

@@ -33,6 +33,6 @@ Thumbs.db
 .env.docker
 
 # Kafka secrets
-backend/kafka/ca.pem
-backend/kafka/service.cert
-backend/kafka/service.key
+backend/kafka_integration/ca.pem
+backend/kafka_integration/service.cert
+backend/kafka_integration/service.key
